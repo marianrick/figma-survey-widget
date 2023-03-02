@@ -1,0 +1,14 @@
+{
+  "name": "Survey",
+  "id": "1212681346343224446",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "capabilities": [],
+  "permissions": ["currentuser", "activeusers"],
+  "enableProposedApi": false,
+  "editorType": [
+    "figjam"
+  ],
+  "containsWidget": true,
+  "widgetApi": "1.0.0"
+}
