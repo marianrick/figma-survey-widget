@@ -1,5 +1,7 @@
 // This is a counter widget with buttons to increment and decrement the number.
-const { widget } = figma;
+const { widget, currentUser } = figma;
+const uid = currentUser?.id ?? null;
+
 const {
   useSyncedState,
   useSyncedMap,
@@ -28,8 +30,6 @@ function Widget() {
 
   const userIdByUser = useSyncedMap<User>("users");
 
-  console.log({ users: userIdByUser.entries() });
-
   return (
     <AutoLayout
       direction={"vertical"}
@@ -50,10 +50,11 @@ function Widget() {
             }}
             onVote={() => {
               if (
-                figma?.currentUser?.id != null &&
-                !userIdByUser.get(figma.currentUser.id)
+                uid != null &&
+                currentUser != null &&
+                !userIdByUser.get(uid)
               ) {
-                userIdByUser.set(figma.currentUser.id, figma.currentUser);
+                userIdByUser.set(uid, currentUser);
               }
             }}
           >
@@ -93,7 +94,6 @@ function Widget() {
           onClick={() => {
             setAnswers((p) => [...p, newAnswer]);
             setNewAnswer("");
-            console.log(figma?.currentUser);
           }}
           width={190}
         >
@@ -120,17 +120,13 @@ function Answer({
   userIdByUser: SyncedMap<User>;
 }) {
   const voteMap = useSyncedMap<number>(`${children}ToVote`);
-  console.log({
-    entries: voteMap.entries(),
-    values: voteMap.values(),
-    keys: voteMap.keys(),
-  });
 
   const voteCount = voteMap.keys().length;
   const voteSize = voteMap.values().reduce((a, b) => a + b, 0);
   const average =
     voteCount < 1 ? 0 : Math.round((voteSize / voteCount) * 100) / 100;
 
+  const userVote = uid != null ? voteMap.get(uid) : 0;
   return (
     <AutoLayout direction="vertical" spacing={10}>
       <AutoLayout spacing={10}>
@@ -149,7 +145,7 @@ function Answer({
       </AutoLayout>
       <AutoLayout spacing={tickSpacing}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((e) => {
-          const belowAverage = e <= Math.round(average);
+          const belowAverage = e <= (userVote ?? 0);
           return (
             <AutoLayout
               key={`answer-children-${e}`}
@@ -162,10 +158,10 @@ function Answer({
               verticalAlignItems="center"
               cornerRadius={40}
               onClick={() => {
-                if (figma?.currentUser?.id == null) {
+                if (uid == null) {
                   return;
                 }
-                voteMap.set(figma.currentUser.id, e);
+                voteMap.set(uid, e);
                 onVote();
               }}
             >
@@ -223,8 +219,7 @@ function Answer({
           </AutoLayout>
         )}
         <Text fill={{ r: 0, g: 0, b: 0, a: 0.5 }}>
-          Avg:{" "}
-          {voteCount < 1 ? 0 : Math.round((average / voteCount) * 100) / 100}
+          Avg: {voteCount < 1 ? 0 : Math.round(average)}
         </Text>
         <Text fill={{ r: 0, g: 0, b: 0, a: 0.5 }}>Votes: {voteCount}</Text>
       </AutoLayout>
